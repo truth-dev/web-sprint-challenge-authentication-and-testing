@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const Jokes = require('../jokes/jokes-data');
+const Users = require('../users/user-model')  ;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { checkUsernameFree } = require('../middleware/restricted');
@@ -15,7 +15,7 @@ router.post('/register', checkUsernameFree, async (req, res, next) => {
   if(!user.username || !user.password){
     res.status(401).json({message: 'username and password required'})
   }else{
-    Jokes.add(user)
+    Users.add(user)
   .then(saved => {
     res.status(201).json({message: `Welcome ${saved.username} to the dad joke app!`})
   })
@@ -54,7 +54,7 @@ router.post('/register', checkUsernameFree, async (req, res, next) => {
 router.post('/login', (req, res, next) => {
  const {username, password} = req.body;
 
- Jokes.findBy({username})
+ Users.findBy({username})
  .then(([user]) => {
   if (user && bcrypt.compareSync(password, user.password)){
    const token = buildToken(user)
