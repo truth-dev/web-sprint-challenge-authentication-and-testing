@@ -3,33 +3,50 @@ const Users = require("../users/user-model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+
+
 const { BCRYPT_ROUNDS, JWT_SECRET } = require("../../config/index");
 
 router.post("/register", async (req, res, next) => {
   const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({
-      message: "Please provide a username and password",
-    });
-  }
+  const hash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
+  const user = { username, password: hash };
   try {
-    const user = await Users.findBy({ username }).first();
-    if (user) {
-      return res.status(409).json({
-        message: "username taken",
+    const newUser = await Users.add(user);
+    res.status(201).json({
+      message: `Welcome ${newUser.username}!`,
+      id: newUser.id,
+      username: newUser.username,
+    });
+    if (!username || !password) {
+      res.status(400).json({
+        message: "Please provide a username and password",
+     
       });
+    } else {
+      next();
+     }
+     if(newUser){
+      res.status(422).json({message: "Username taken"})
     }
-    const newUser = await Users.add({
-      username,
-      password: await bcrypt.hash(password, BCRYPT_ROUNDS),
-    }); 
-    res.status(201).json(newUser);
-  } catch (err) {
+    }
+    catch (err) {
     next(err);
   }
-    
+  
+
+
+
+  
+ 
+
+
 });
 
+
+
+
+    
 router.post("/login", (req, res, next) => {
   const { username, password } = req.body;
 

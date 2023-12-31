@@ -3,16 +3,18 @@ const { JWT_SECRET } = require("../../config/index");
 
 module.exports = (req, res, next) => {
   const token = req.headers.authorization;
-  if (token) {
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
-      if (err) {
-        next({ status: 401, message: "token invalid, you shall not pass" });
+
+ if(token){
+    jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
+      if(err){
+        res.status(401).json({ message: "Invalid Credentials" });
       } else {
-        req.decodedJwt = decoded;
-        console.log(req.decodedJwt);
+        req.decodedJwt = decodedToken;
+        next();
       }
-    });
-  } else {
-    next({ status: 401, message: "what? no token? absurd!" });
-  }
+    })
+
+ }else{
+   res.status(400).json({ message: "No credentials provided" });
+ }
 };
