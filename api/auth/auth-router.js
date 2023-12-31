@@ -9,32 +9,32 @@ router.post("/register", async (req, res, next) => {
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({
-      message: "username and password required",
+      message: "Please provide a username and password",
     });
   }
   try {
-    const existingUser = await Users.findBy({ username }).first();
-    if (existingUser) {
+    const user = await Users.findBy({ username }).first();
+    if (user) {
       return res.status(409).json({
         message: "username taken",
       });
     }
-    const hash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
     const newUser = await Users.add({
       username,
-      password: hash,
-    });
-    res.status(201).json(`welcome ${newUser.username} to the dad joke app!`);
+      password: await bcrypt.hash(password, BCRYPT_ROUNDS),
+    }); 
+    res.status(201).json(newUser);
   } catch (err) {
     next(err);
   }
+    
 });
 
 router.post("/login", (req, res, next) => {
   const { username, password } = req.body;
 
   Users.findBy({ username })
-    .then(([user]) => {
+    .then((user) => {
       if (user && bcrypt.compareSync(password, user.password)) {
         const token = buildToken(user);
         res
