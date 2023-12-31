@@ -2,7 +2,7 @@ const router = require('express').Router();
 const Users = require('../users/user-model')  ;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { checkUsernameFree } = require('../middleware/restricted');
+const { checkUsernameFree } = require('./auth-middleware');
 
 const { BCRYPT_ROUNDS, JWT_SECRET } = require('../../config/index');
 
@@ -20,16 +20,10 @@ router.post('/register', checkUsernameFree, async (req, res, next) => {
     res.status(201).json({message: `Welcome ${saved.username} to the dad joke app!`})
   
   })
- 
+  .catch(next)
   }
-  try {
-    const exists = await Users.findBy({username: user.username})
-    if(exists.length){
-      res.status(401).json({message: 'username taken'})
-  }
-} catch (err) { 
-  next(err)
-}
+  
+
 
 
 });
@@ -38,17 +32,18 @@ router.post('/login', (req, res, next) => {
  const {username, password} = req.body;
 
  if(!username || !password){
-   res.status(401).json({message: 'username and password required'})
+  return res.status(401).json({message: 'username and password required'})
  }
 
- Users.findBy(username)
+ Users.findBy({username})
+ console.log(Users.findBy({username}))
  .then(([user]) => {
   if (user && bcrypt.compareSync(password, user.password)){
    const token = buildToken(user)
-   res.status(200).json({message: `Welcome back, ${user.username}`, token})
+   return res.status(200).json({message: `Welcome back, ${user.username}`, token})
 
   }else{
-    next({status: 401, message: 'invalid credentials'})
+   return res.status(401).json({message: 'invalid credentials'})
   }
   
  })
