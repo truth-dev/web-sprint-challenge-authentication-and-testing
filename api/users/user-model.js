@@ -1,14 +1,15 @@
 const db = require("../../data/dbConfig");
 
 
-// In your Users model
+
  async function add(user) {
     const [id] = await db('users').insert(user, 'id');
-    return findById(id);
+    const newUser = await findById(id);
+    return newUser;
   }
 
 function findBy(filter) {
-  return db("users").where(filter);
+  return db("users").where(filter)
 }
 
 function findById(id) {
