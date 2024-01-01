@@ -32,19 +32,14 @@ router.post("/register", async (req, res, next) => {
 router.post("/login", async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    const user = await Users.findBy({username: username}).first();
-    if (!username || !password) {
-      return res.status(401).json({
+     if (!username && !password) {
+      return res.status(400).json({
         message: "username and password required",
       });
      
-    } else if (!user) {
-      return res.status(401).json({
-        message: "Invalid Credentials",
-      });
-    }
-    const passwordValid = await bcrypt.compare(password, user.password);
-    if (!passwordValid) {
+    } 
+    const user = await Users.findBy({username: username}).first();
+    if (!user) {
       return res.status(401).json({
         message: "Invalid Credentials",
       });
