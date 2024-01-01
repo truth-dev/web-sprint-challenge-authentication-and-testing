@@ -32,19 +32,24 @@ router.post("/register", async (req, res, next) => {
 router.post("/login", async (req, res, next) => {
   try {
     const { username, password } = req.body;
-    const user = await Users.findBy(username).first();
+    const user = await Users.findBy({username: username}).first();
     if (!username || !password) {
-      return res.status(400).json({
+      return res.status(401).json({
         message: "username and password required",
       });
-    }
-    if (!user || !(bcrypt.compare(password, user.password))) {
+     
+    } else if (!user) {
       return res.status(401).json({
         message: "Invalid Credentials",
       });
-    } 
-
-    const token = buildToken();
+    }
+    const passwordValid = await bcrypt.compare(password, user.password);
+    if (!passwordValid) {
+      return res.status(401).json({
+        message: "Invalid Credentials",
+      });
+    }
+    const token = buildToken(user);
     res.status(200).json({
       message: `Welcome ${user.username}!`,
       token,
@@ -66,3 +71,4 @@ function buildToken(user) {
 }
 
 module.exports = router;
+
